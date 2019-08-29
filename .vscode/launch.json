@@ -1,0 +1,94 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // Miscrosoft Guide to debuging Meteor
+  // https://github.com/Microsoft/vscode-recipes/tree/master/meteor
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  // to work with this you launch start meteor from the terminal and then 
+  // run the debugger meteor all or meteor chrome to attach the debuggers
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Meteor: Chrome",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceRoot}",
+      "sourceMaps": true
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "protocol": "auto",
+      "name": "Meteor: Attach to Server",
+      "cwd": "${workspaceRoot}",
+      "port": 9229,
+      "sourceMaps": true
+    },
+    // This launches the server but does not relaunch the server when the code changes. 
+    // {
+    //   "type": "node",
+    //   "request": "launch",
+    //   "name": "Meteor: Server-Web",
+    //   "runtimeExecutable": "meteor",
+    //   "runtimeArgs": [
+    //     "npm",
+    //     "run",
+    //     "debug-web"
+    //   ],
+    //   "cwd": "${workspaceRoot}",
+    //   "restart": true,
+    //   "protocol": "inspector",
+    //   "sourceMaps": true,
+    //   "port": 9229,
+    //   "timeout": 60000,
+    //   "outFiles": [
+    //     "${workspaceRoot}/.meteor/local/build/programs/server/**/**.js"
+    //   ],
+    //   "localRoot": "${workspaceRoot}",
+    // },
+    // {
+    //   "type": "node",
+    //   "request": "launch",
+    //   "name": "Meteor: Server-GS",
+    //   "runtimeExecutable": "meteor",
+    //   "runtimeArgs": [
+    //     "npm",
+    //     "run",
+    //     "debug-gs"
+    //   ],
+    //   "cwd": "${workspaceRoot}",
+    //   "restart": true,
+    //   "protocol": "inspector",
+    //   "sourceMaps": true,
+    //   "port": 9229,
+    //   "timeout": 60000,
+    //   "outFiles": ["${workspaceRoot}/.meteor/local/build/programss/server/**/**.js"
+    //   "localRoot": "${workspaceRoot}",
+    // }
+  ],
+  "compounds": [
+    {
+      "name": "Meteor: All",
+      "configurations": [
+        "Meteor: Attach to Server",
+        "Meteor: Chrome"
+      ]
+    },
+    // These are the compounds to run the commented servers above
+    // {
+    //   "name": "Meteor: Web All",
+    //   "configurations": [
+    //     "Meteor: Server-Web",
+    //     "Meteor: Chrome"
+    //   ]
+    // },
+    // {
+    //   "name": "Meteor: GS All",
+    //   "configurations": [
+    //     "Meteor: Server-GS",
+    //     "Meteor: Chrome"
+    //   ]
+    // }
+  ]
+}

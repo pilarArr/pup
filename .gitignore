@@ -1,5 +1,4 @@
 node_modules
-.vscode
 .DS_Store
 
 # ignoring the node_modules folder for all projects
@@ -67,9 +66,6 @@ settings-staging.json
 settings-production.json
 !**/.deploy/production/settings.json
 !**/.deploy/staging/settings.json
-settings-demo.json
-settings-staging.json
-settings-production.json
 
 # meteor build output files
 *.tar.gz

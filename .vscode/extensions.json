@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "jpoissonnier.vscode-styled-components",
+    "esbenp.prettier-vscode",
+    "davidanson.vscode-markdownlint",
+    "coenraads.bracket-pair-colorizer",
+    "wayou.vscode-todo-highlight",
+    "pkief.material-icon-theme",
+    "eamodio.gitlens",
+    "alefragnani.project-manager",
+    "joelday.docthis",
+    "bierner.markdown-emoji",
+    "bierner.markdown-preview-github-styles",
+    "eriklynd.json-tools",
+    "cssho.vscode-svgviewer",
+    "kamikillerto.vscode-colorize"
+  ]
+}
