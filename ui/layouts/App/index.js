@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Switch, Route } from 'react-router-dom';
 import { Container } from 'react-bootstrap';
@@ -52,119 +52,110 @@ import Styles from './styles';
 
 library.add(fas, far, fab);
 
-class App extends React.Component {
-  state = { ready: false, afterLoginPath: null };
+const App = ({ loading, authenticated, userId, emailVerified, emailAddress, loggingIn }) => {
+  const [ready, setPageReady] = useState(false);
+  const [afterLoginPath, setAfterLoginPath] = useState(null);
 
-  componentDidMount() {
-    this.setPageReady();
-  }
+  useEffect(() => {
+    setPageReady(true);
+  }, []);
 
-  setPageReady = () => {
-    this.setState({ ready: true });
-  };
+  return (
+    <Styles.App ready={ready} loading={`${loading}`}>
+      {authenticated && (
+        <VerifyEmailAlert
+          userId={userId}
+          emailVerified={emailVerified}
+          emailAddress={emailAddress}
+        />
+      )}
+      {authenticated && <GDPRConsentModal />}
+      <Navigation />
+      <Container>
+        <Switch>
+          <Route exact name="index" path="/" component={Index} />
 
-  setAfterLoginPath = (afterLoginPath) => {
-    this.setState({ afterLoginPath });
-  };
-
-  render() {
-    const { props, state, setAfterLoginPath } = this;
-    const propsToPass = { ...props, ...state };
-    return (
-      <Styles.App ready={state.ready} loading={`${props.loading}`}>
-        {props.authenticated && (
-          <VerifyEmailAlert
-            userId={props.userId}
-            emailVerified={props.emailVerified}
-            emailAddress={props.emailAddress}
+          <Authenticated
+            exact
+            path="/documents"
+            component={Documents}
+            setAfterLoginPath={setAfterLoginPath}
+            loggingIn={loggingIn}
+            authenticated={authenticated}
           />
-        )}
-        {props.authenticated && <GDPRConsentModal userId={props.userId} />}
-        <Navigation {...propsToPass} />
-        <Container>
-          <Switch>
-            <Route exact name="index" path="/" component={Index} />
+          <Route exact path="/documents/:_id" component={ViewDocument} />
+          <Authenticated
+            exact
+            path="/documents/:_id/edit"
+            component={EditDocument}
+            setAfterLoginPath={setAfterLoginPath}
+            loggingIn={loggingIn}
+            authenticated={authenticated}
+          />
 
-            <Authenticated
-              exact
-              path="/documents"
-              component={Documents}
-              setAfterLoginPath={setAfterLoginPath}
-              {...propsToPass}
-            />
-            <Route exact path="/documents/:_id" component={ViewDocument} />
-            <Authenticated
-              exact
-              path="/documents/:_id/edit"
-              component={EditDocument}
-              setAfterLoginPath={setAfterLoginPath}
-              {...propsToPass}
-            />
+          <Authenticated
+            exact
+            path="/profile"
+            component={Profile}
+            setAfterLoginPath={setAfterLoginPath}
+            loggingIn={loggingIn}
+            authenticated={authenticated}
+          />
+          <Public
+            path="/signup"
+            component={Signup}
+            afterLoginPath={afterLoginPath}
+            authenticated={authenticated}
+          />
+          <Public
+            path="/login"
+            component={Login}
+            afterLoginPath={afterLoginPath}
+            authenticated={authenticated}
+          />
+          <Route path="/logout" render={() => <Logout setAfterLoginPath={setAfterLoginPath} />} />
 
-            <Authenticated
-              exact
-              path="/profile"
-              component={Profile}
-              setAfterLoginPath={setAfterLoginPath}
-              {...propsToPass}
-            />
-            <Public path="/signup" component={Signup} {...propsToPass} />
-            <Public path="/login" component={Login} {...propsToPass} />
-            <Route
-              path="/logout"
-              render={(routeProps) => (
-                <Logout {...routeProps} setAfterLoginPath={setAfterLoginPath} />
-              )}
-              {...propsToPass}
-            />
+          <Route name="verify-email" path="/verify-email/:token" component={VerifyEmail} />
+          <Route name="recover-password" path="/recover-password" component={RecoverPassword} />
+          <Route name="reset-password" path="/reset-password/:token" component={ResetPassword} />
 
-            <Route name="verify-email" path="/verify-email/:token" component={VerifyEmail} />
-            <Route name="recover-password" path="/recover-password" component={RecoverPassword} />
-            <Route name="reset-password" path="/reset-password/:token" component={ResetPassword} />
+          <Route name="terms" path="/terms" component={Terms} />
+          <Route name="privacy" path="/privacy" component={Privacy} />
+          <Route name="examplePage" path="/example-page" component={ExamplePage} />
 
-            <Route name="terms" path="/terms" component={Terms} />
-            <Route name="privacy" path="/privacy" component={Privacy} />
-            <Route name="examplePage" path="/example-page" component={ExamplePage} />
+          <Authorized
+            exact
+            allowedRoles={['admin']}
+            path="/admin/users"
+            pathAfterFailure="/"
+            component={AdminUsers}
+          />
+          <Authorized
+            exact
+            allowedRoles={['admin']}
+            path="/admin/users/settings"
+            pathAfterFailure="/"
+            component={AdminUserSettings}
+          />
+          <Authorized
+            exact
+            allowedRoles={['admin']}
+            path="/admin/users/:_id"
+            pathAfterFailure="/"
+            component={AdminUser}
+          />
 
-            <Authorized
-              exact
-              allowedRoles={['admin']}
-              path="/admin/users"
-              pathAfterFailure="/"
-              component={AdminUsers}
-              setAfterLoginPath={setAfterLoginPath}
-              {...propsToPass}
-            />
-            <Authorized
-              exact
-              allowedRoles={['admin']}
-              path="/admin/users/settings"
-              pathAfterFailure="/"
-              component={AdminUserSettings}
-              setAfterLoginPath={setAfterLoginPath}
-              {...propsToPass}
-            />
-            <Authorized
-              exact
-              allowedRoles={['admin']}
-              path="/admin/users/:_id"
-              pathAfterFailure="/"
-              component={AdminUser}
-              setAfterLoginPath={setAfterLoginPath}
-              {...propsToPass}
-            />
-
-            <Route component={NotFound} />
-          </Switch>
-        </Container>
-        <Footer />
-      </Styles.App>
-    );
-  }
-}
+          <Route component={NotFound} />
+        </Switch>
+      </Container>
+      <Footer />
+    </Styles.App>
+  );
+};
 
 App.defaultProps = {
   loading: true,
+  loggingIn: false,
   userId: '',
   emailAddress: '',
   emailVerified: false,
@@ -173,6 +164,7 @@ App.defaultProps = {
 
 App.propTypes = {
   loading: PropTypes.bool,
+  loggingIn: PropTypes.bool,
   userId: PropTypes.string,
   emailAddress: PropTypes.string,
   emailVerified: PropTypes.bool,
@@ -193,7 +185,6 @@ export default withTrackerSsr(() => {
     loggingIn,
     authenticated: !loggingIn && !!userId,
     name: name || emailAddress,
-    roles: Roles.getRolesForUser(userId),
     userId,
     emailAddress,
     emailVerified: user && user.emails ? user.emails[0] && user.emails[0].verified : true,

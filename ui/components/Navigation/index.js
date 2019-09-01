@@ -6,28 +6,30 @@ import { Meteor } from 'meteor/meteor';
 import PublicNavigation from '../PublicNavigation';
 import AuthenticatedNavigation from '../AuthenticatedNavigation';
 
-const Navigation = (props) => {
-  const { authenticated } = props;
-  return (
-    <Navbar collapseOnSelect bg="light" expand="lg" className="mb-3">
-      <Container>
-        <LinkContainer to="/">
-          <Navbar.Brand>{Meteor.settings.public.productName}</Navbar.Brand>
-        </LinkContainer>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav" className={!authenticated && 'justify-content-end'}>
-          {authenticated ? <AuthenticatedNavigation {...props} /> : <PublicNavigation {...props} />}
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
-  );
-};
+const Navigation = ({ authenticated, name, userId }) => (
+  <Navbar collapseOnSelect bg="light" expand="lg" className="mb-3">
+    <Container>
+      <LinkContainer to="/">
+        <Navbar.Brand>{Meteor.settings.public.productName}</Navbar.Brand>
+      </LinkContainer>
+      <Navbar.Toggle aria-controls="basic-navbar-nav" />
+      <Navbar.Collapse id="basic-navbar-nav" className={!authenticated && 'justify-content-end'}>
+        {authenticated ? (
+          <AuthenticatedNavigation name={name} userId={userId} />
+        ) : (
+          <PublicNavigation />
+        )}
+      </Navbar.Collapse>
+    </Container>
+  </Navbar>
+);
 
 Navigation.defaultProps = {
   name: '',
 };
 
 Navigation.propTypes = {
+  userId: PropTypes.string.isRequired,
   authenticated: PropTypes.bool.isRequired,
   name: PropTypes.string,
 };

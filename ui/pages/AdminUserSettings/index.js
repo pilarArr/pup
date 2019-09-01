@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button, ListGroup, ListGroupItem } from 'react-bootstrap';
 import { compose, graphql } from 'react-apollo';
@@ -30,11 +30,11 @@ const Setting = styled(ListGroupItem)`
   }
 `;
 
-class AdminUserSettings extends React.Component {
-  state = { showSettingsModal: false, currentSetting: null };
+const AdminUserSettings = ({ removeUserSetting, data, addUserSetting, updateUserSetting }) => {
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [currentSetting, setCurrentSetting] = useState(null);
 
-  handleDeleteSetting = (settingId) => {
-    const { removeUserSetting } = this.props;
+  const handleDeleteSetting = (settingId) => {
     if (
       confirm(
         "Are you sure? Before deleting this setting make sure that it's no longer in use in your application!",
@@ -47,66 +47,71 @@ class AdminUserSettings extends React.Component {
       });
     }
   };
-
-  render() {
-    const { data, addUserSetting, updateUserSetting } = this.props;
-    const { showSettingsModal, currentSetting } = this.state;
-    return (
-      <>
-        <PageHeader>
-          <h4>User Settings</h4>
-          <Button
-            variant="success"
-            className="ml-auto"
-            onClick={() => this.setState({ showSettingsModal: true, currentSetting: null })}
-          >
-            Add Setting
-          </Button>
-        </PageHeader>
-        {data.userSettings && data.userSettings.length > 0 ? (
-          <ListGroup>
-            {data.userSettings.map((setting) => (
-              <Setting key={setting._id}>
-                <p>{setting.key}</p>
-                <div>
-                  <Button
-                    variant="light"
-                    onClick={() =>
-                      this.setState({ showSettingsModal: true, currentSetting: setting })
-                    }
-                  >
-                    Edit
-                  </Button>
-                  <Button variant="danger" onClick={() => this.handleDeleteSetting(setting._id)}>
-                    Delete
-                  </Button>
-                </div>
-              </Setting>
-            ))}
-          </ListGroup>
-        ) : (
-          <BlankState
-            icon={{ style: 'solid', symbol: 'cog' }}
-            title="No user settings here, friend."
-            subtitle="Add your first setting by clicking the button below."
-            action={{
-              style: 'success',
-              onClick: () => this.setState({ showSettingsModal: true, currentSetting: null }),
-              label: 'Create Your First Setting',
-            }}
-          />
-        )}
-        <AdminUserSettingsModal
-          show={showSettingsModal}
-          onHide={() => this.setState({ showSettingsModal: false, currentSetting: null })}
-          setting={currentSetting}
-          addUserSetting={addUserSetting}
-          updateUserSetting={updateUserSetting}
+  return (
+    <>
+      <PageHeader>
+        <h4>User Settings</h4>
+        <Button
+          variant="success"
+          className="ml-auto"
+          onClick={() => {
+            setShowSettingsModal(true);
+            setCurrentSetting(null);
+          }}
+        >
+          Add Setting
+        </Button>
+      </PageHeader>
+      {data.userSettings && data.userSettings.length > 0 ? (
+        <ListGroup>
+          {data.userSettings.map((setting) => (
+            <Setting key={setting._id}>
+              <p>{setting.key}</p>
+              <div>
+                <Button
+                  variant="light"
+                  onClick={() => {
+                    setShowSettingsModal(true);
+                    setCurrentSetting(setting);
+                  }}
+                >
+                  Edit
+                </Button>
+                <Button variant="danger" onClick={() => handleDeleteSetting(setting._id)}>
+                  Delete
+                </Button>
+              </div>
+            </Setting>
+          ))}
+        </ListGroup>
+      ) : (
+        <BlankState
+          icon={{ style: 'solid', symbol: 'cog' }}
+          title="No user settings here, friend."
+          subtitle="Add your first setting by clicking the button below."
+          action={{
+            style: 'success',
+            onClick: () => {
+              setShowSettingsModal(true);
+              setCurrentSetting(null);
+            },
+            label: 'Create Your First Setting',
+          }}
         />
-      </>
-    );
-  }
-}
+      )}
+      <AdminUserSettingsModal
+        show={showSettingsModal}
+        onHide={() => {
+          setShowSettingsModal(false);
+          setCurrentSetting(null);
+        }}
+        setting={currentSetting}
+        addUserSetting={addUserSetting}
+        updateUserSetting={updateUserSetting}
+      />
+    </>
+  );
+};
 
 AdminUserSettings.propTypes = {
   data: PropTypes.object.isRequired,

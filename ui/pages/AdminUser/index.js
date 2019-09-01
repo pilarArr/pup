@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { compose, graphql } from 'react-apollo';
 import { Breadcrumb, Tab, Tabs } from 'react-bootstrap';
@@ -15,67 +15,63 @@ import {
 import Styles from './styles';
 import PageHeader from '../../components/PageHeader';
 
-class AdminUser extends React.Component {
-  state = { activeTab: 'profile' };
+const AdminUser = ({ data, updateUser, removeUser }) => {
+  const [activeTab, setTab] = useState('profile');
 
-  render() {
-    const { data, updateUser, removeUser } = this.props;
-    const { activeTab } = this.state;
-    const name = data.user && data.user.name;
-    const username = data.user && data.user.username;
+  const name = data.user && data.user.name;
+  const username = data.user && data.user.username;
 
-    return data.user ? (
-      <>
-        <Breadcrumb>
-          <LinkContainer to="/admin/users">
-            <Breadcrumb.Item>Users</Breadcrumb.Item>
-          </LinkContainer>
-          <Breadcrumb.Item active>{name ? `${name.first} ${name.last}` : username}</Breadcrumb.Item>
-        </Breadcrumb>
-        <PageHeader>
-          <h4>
-            {name ? `${name.first} ${name.last}` : username}
-            {data.user.oAuthProvider && (
-              <Styles.ServiceBadge service={data.user.oAuthProvider}>
-                {data.user.oAuthProvider}
-              </Styles.ServiceBadge>
-            )}
-          </h4>
-        </PageHeader>
-        <Tabs
-          className="mb-2"
-          transition={false}
-          activeKey={activeTab}
-          onSelect={(selectedTab) => this.setState({ activeTab: selectedTab })}
-          id="admin-user-tabs"
-        >
-          <Tab eventKey="profile" title="Profile">
-            <AdminUserProfile
-              user={data.user}
-              updateUser={(options, callback) => {
-                // NOTE: Do this to allow us to perform work inside of AdminUserProfile
-                // after a successful update. Not ideal, but hey, c'est la vie.
-                updateUser(options);
-                if (callback) callback();
-              }}
-              removeUser={removeUser}
-            />
-          </Tab>
-          <Tab eventKey="settings" title="Settings">
-            <UserSettings
-              isAdmin
-              userId={data.user._id}
-              settings={data.user.settings}
-              updateUser={updateUser}
-            />
-          </Tab>
-        </Tabs>
-      </>
-    ) : (
-      ''
-    );
-  }
-}
+  return data.user ? (
+    <>
+      <Breadcrumb>
+        <LinkContainer to="/admin/users">
+          <Breadcrumb.Item>Users</Breadcrumb.Item>
+        </LinkContainer>
+        <Breadcrumb.Item active>{name ? `${name.first} ${name.last}` : username}</Breadcrumb.Item>
+      </Breadcrumb>
+      <PageHeader>
+        <h4>
+          {name ? `${name.first} ${name.last}` : username}
+          {data.user.oAuthProvider && (
+            <Styles.ServiceBadge service={data.user.oAuthProvider}>
+              {data.user.oAuthProvider}
+            </Styles.ServiceBadge>
+          )}
+        </h4>
+      </PageHeader>
+      <Tabs
+        className="mb-2"
+        transition={false}
+        activeKey={activeTab}
+        onSelect={(selectedTab) => setTab(selectedTab)}
+        id="admin-user-tabs"
+      >
+        <Tab eventKey="profile" title="Profile">
+          <AdminUserProfile
+            user={data.user}
+            updateUser={(options, callback) => {
+              // NOTE: Do this to allow us to perform work inside of AdminUserProfile
+              // after a successful update. Not ideal, but hey, c'est la vie.
+              updateUser(options);
+              if (callback) callback();
+            }}
+            removeUser={removeUser}
+          />
+        </Tab>
+        <Tab eventKey="settings" title="Settings">
+          <UserSettings
+            isAdmin
+            userId={data.user._id}
+            settingsFromProps={data.user.settings}
+            updateUser={updateUser}
+          />
+        </Tab>
+      </Tabs>
+    </>
+  ) : (
+    ''
+  );
+};
 
 AdminUser.propTypes = {
   data: PropTypes.object.isRequired,

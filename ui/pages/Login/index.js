@@ -19,7 +19,7 @@ const handleSubmit = (form) => {
   });
 };
 
-const validationProps = {
+const formValidation = {
   rules: {
     emailAddress: {
       required: true,
@@ -37,9 +37,6 @@ const validationProps = {
     password: {
       required: 'Need a password here.',
     },
-  },
-  submitHandler: (form) => {
-    handleSubmit(form);
   },
 };
 
@@ -70,7 +67,13 @@ const Login = () => (
             />
           </Col>
         </Row>
-        <Validation {...validationProps}>
+        <Validation
+          rules={formValidation.rules}
+          messages={formValidation.messages}
+          submitHandler={(form) => {
+            handleSubmit(form);
+          }}
+        >
           <Form onSubmit={(event) => event.preventDefault()}>
             <Form.Group>
               <Form.Label>Email Address</Form.Label>

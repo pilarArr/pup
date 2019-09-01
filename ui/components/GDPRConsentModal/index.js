@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Modal } from 'react-bootstrap';
 import { compose, graphql } from 'react-apollo';
@@ -8,24 +8,21 @@ import { updateUser as updateUserMutation } from '../../mutations/Users.gql';
 import unfreezeApolloCacheValue from '../../../modules/unfreezeApolloCacheValue';
 import Styles from './styles';
 
-class GDPRConsentModal extends React.Component {
-  state = { show: false };
+const GDPRConsentModal = ({ data, updateUser }) => {
+  const [show, setShow] = useState(false);
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.data && nextProps.data.user && nextProps.data.user.settings) {
+  useEffect(() => {
+    if (data && data.user && data.user.settings) {
       let gdprComplete = true;
-      const gdprSettings = nextProps.data.user.settings.filter(
-        (setting) => setting.isGDPR === true,
-      );
+      const gdprSettings = data.user.settings.filter((setting) => setting.isGDPR === true);
       gdprSettings.forEach(({ lastUpdatedByUser }) => {
         if (!lastUpdatedByUser) gdprComplete = false;
       });
-      this.setState({ show: !gdprComplete });
+      setShow(!gdprComplete);
     }
-  }
+  }, [data]);
 
-  handleSaveSettings = () => {
-    const { data, updateUser } = this.props;
+  const handleSaveSettings = () => {
     if (data && data.user && data.user.settings) {
       updateUser({
         variables: {
@@ -44,46 +41,37 @@ class GDPRConsentModal extends React.Component {
     }
   };
 
-  render() {
-    const { data, updateUser } = this.props;
-    const { show } = this.state;
-
-    return (
-      <Styles.GDPRConsentModal
-        backdrop="static"
-        show={show}
-        onHide={() => this.setState({ show: false })}
-      >
-        <Modal.Header>
-          <Modal.Title>GDPR Consent</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p>
-            {"In cooperation with the European Union's (EU) "}
-            <a href="https://www.eugdpr.org/" target="_blank" rel="noopener noreferrer">
-              {'General Data Protection Regulation'}
-            </a>
-            {
-              ' (GDPR), we need to obtain your consent for how we make use of your data. Please review each of the settings below to customize your experience.'
-            }
-          </p>
-          <UserSettings settings={data.user && data.user.settings} updateUser={updateUser} />
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            variant="success"
-            onClick={() => {
-              this.handleSaveSettings();
-              this.setState({ show: false });
-            }}
-          >
-            Save Settings
-          </Button>
-        </Modal.Footer>
-      </Styles.GDPRConsentModal>
-    );
-  }
-}
+  return (
+    <Styles.GDPRConsentModal backdrop="static" show={show} onHide={() => setShow(false)}>
+      <Modal.Header>
+        <Modal.Title>GDPR Consent</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <p>
+          {"In cooperation with the European Union's (EU) "}
+          <a href="https://www.eugdpr.org/" target="_blank" rel="noopener noreferrer">
+            {'General Data Protection Regulation'}
+          </a>
+          {
+            ' (GDPR), we need to obtain your consent for how we make use of your data. Please review each of the settings below to customize your experience.'
+          }
+        </p>
+        <UserSettings settingsFromProps={data.user && data.user.settings} updateUser={updateUser} />
+      </Modal.Body>
+      <Modal.Footer>
+        <Button
+          variant="success"
+          onClick={() => {
+            handleSaveSettings();
+            setShow(false);
+          }}
+        >
+          Save Settings
+        </Button>
+      </Modal.Footer>
+    </Styles.GDPRConsentModal>
+  );
+};
 
 GDPRConsentModal.propTypes = {
   data: PropTypes.object.isRequired,

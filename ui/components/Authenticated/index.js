@@ -1,39 +1,33 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Route, Redirect } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 
-class Authenticated extends React.Component {
-  componentWillMount() {
+const Authenticated = ({ setAfterLoginPath, loggingIn, authenticated, component, path, exact }) => {
+  useEffect(() => {
     if (Meteor.isClient) {
-      const { setAfterLoginPath } = this.props;
       setAfterLoginPath(`${window.location.pathname}${window.location.search}`);
     }
-  }
+  }, [setAfterLoginPath]);
 
-  render() {
-    const { loggingIn, authenticated, component, path, exact, ...rest } = this.props;
-
-    return (
-      <Route
-        path={path}
-        exact={exact}
-        render={(props) =>
-          authenticated ? (
-            React.createElement(component, {
-              ...props,
-              ...rest,
-              loggingIn,
-              authenticated,
-            })
-          ) : (
-            <Redirect to="/login" />
-          )
-        }
-      />
-    );
-  }
-}
+  return (
+    <Route
+      path={path}
+      exact={exact}
+      render={(props) =>
+        authenticated ? (
+          React.createElement(component, {
+            ...props,
+            loggingIn,
+            authenticated,
+          })
+        ) : (
+          <Redirect to="/login" />
+        )
+      }
+    />
+  );
+};
 
 Authenticated.defaultProps = {
   loggingIn: false,

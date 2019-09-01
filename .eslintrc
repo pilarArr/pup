@@ -96,7 +96,7 @@
     "jsdoc/valid-types": 2,
     // Possible new rules
     // "react/state-in-constructor": 0,
-    "react/jsx-props-no-spreading": 0,
+    "react/jsx-props-no-spreading": 1,
     // Just for migration rules
     "no-restricted-globals": 1,
     // "no-console": 1

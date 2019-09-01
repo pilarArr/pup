@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Route, Redirect } from 'react-router-dom';
 
-const Public = ({ loggingIn, authenticated, afterLoginPath, component, path, exact, ...rest }) => (
+const Public = ({ authenticated, afterLoginPath, component, path, exact }) => (
   <Route
     path={path}
     exact={exact}
@@ -10,9 +10,6 @@ const Public = ({ loggingIn, authenticated, afterLoginPath, component, path, exa
       !authenticated ? (
         React.createElement(component, {
           ...props,
-          ...rest,
-          loggingIn,
-          authenticated,
         })
       ) : (
         <Redirect to={afterLoginPath || '/documents'} />
@@ -22,14 +19,12 @@ const Public = ({ loggingIn, authenticated, afterLoginPath, component, path, exa
 );
 
 Public.defaultProps = {
-  loggingIn: false,
   path: '',
   exact: false,
   afterLoginPath: null,
 };
 
 Public.propTypes = {
-  loggingIn: PropTypes.bool,
   authenticated: PropTypes.bool.isRequired,
   component: PropTypes.func.isRequired,
   afterLoginPath: PropTypes.string,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { ListGroup, Form } from 'react-bootstrap';
 import ToggleSwitch from '../ToggleSwitch';
@@ -7,12 +7,47 @@ import unfreezeApolloCacheValue from '../../../modules/unfreezeApolloCacheValue'
 import delay from '../../../modules/delay';
 import Styles from './styles';
 
-class UserSettings extends React.Component {
-  state = { settings: unfreezeApolloCacheValue([...this.props.settings]) };
+const SettingValue = ({ type, key, value, onChange }) => {
+  switch (type) {
+    case 'boolean':
+      return (
+        <ToggleSwitch
+          id={key}
+          toggled={value === 'true'}
+          onToggle={(id, toggled) => onChange({ key, value: `${toggled}` })}
+        />
+      );
+    case 'number':
+      return (
+        <Form.Control
+          type="number"
+          value={value}
+          onChange={(event) => onChange({ key, value: parseInt(event.target.value, 10) })}
+        />
+      );
+    case 'string':
+      return (
+        <Form.Control
+          value={value}
+          onChange={(event) => onChange({ key, value: event.target.value })}
+        />
+      );
+    default:
+      throw new Error();
+  }
+};
 
-  handleUpdateSetting = (setting) => {
-    const { userId, updateUser } = this.props;
-    const { settings } = this.state;
+SettingValue.propTypes = {
+  type: PropTypes.string.isRequired,
+  key: PropTypes.bool.isRequired,
+  value: PropTypes.array.isRequired,
+  onChange: PropTypes.func.isRequired,
+};
+
+const UserSettings = ({ settingsFromProps, userId, updateUser, isAdmin }) => {
+  const [settings, setSettings] = useState(unfreezeApolloCacheValue([...settingsFromProps]));
+
+  const handleUpdateSetting = (setting) => {
     const settingsUpdate = [...settings];
     const settingToUpdate = settingsUpdate.find(({ _id }) => _id === setting._id);
 
@@ -20,87 +55,61 @@ class UserSettings extends React.Component {
 
     if (!userId) settingToUpdate.lastUpdatedByUser = new Date().toISOString();
 
-    this.setState({ settings }, () => {
-      delay(() => {
-        updateUser({
-          variables: {
-            user: {
-              _id: userId,
-              settings: settingsUpdate,
-            },
+    setSettings(settingsUpdate);
+    delay(() => {
+      updateUser({
+        variables: {
+          user: {
+            _id: userId,
+            settings: settingsUpdate,
           },
-        });
-      }, 750);
-    });
+        },
+      });
+    }, 750);
   };
 
-  renderSettingValue = (type, key, value, onChange) =>
-    ({
-      boolean: () => (
-        <ToggleSwitch
-          id={key}
-          toggled={value === 'true'}
-          onToggle={(id, toggled) => onChange({ key, value: `${toggled}` })}
-        />
-      ),
-      number: () => (
-        <Form.Control
-          type="number"
-          value={value}
-          onChange={(event) => onChange({ key, value: parseInt(event.target.value, 10) })}
-        />
-      ),
-      string: () => (
-        <Form.Control
-          value={value}
-          onChange={(event) => onChange({ key, value: event.target.value })}
-        />
-      ),
-    }[type]());
-
-  render() {
-    const { isAdmin } = this.props;
-    const { settings } = this.state;
-    return (
-      <>
-        <ListGroup>
-          {settings.length > 0 ? (
-            settings.map(({ _id, key, label, type, value }) => (
-              <Styles.Setting key={key} className="clearfix">
-                <p>{label}</p>
-                <div>
-                  {this.renderSettingValue(type, key, value, (update) =>
-                    this.handleUpdateSetting({ ...update, _id }),
-                  )}
-                </div>
-              </Styles.Setting>
-            ))
-          ) : (
-            <BlankState
-              icon={{ style: 'solid', symbol: 'cogs' }}
-              title={`No settings to manage ${isAdmin ? 'for this user' : 'yet'}.`}
-              subtitle={`${
-                isAdmin ? 'GDPR-specific settings intentionally excluded. ' : ''
-              } When there are settings to manage, they'll appear here.`}
-            />
-          )}
-        </ListGroup>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <ListGroup>
+        {settings.length > 0 ? (
+          settings.map(({ _id, key, label, type, value }) => (
+            <Styles.Setting key={key} className="clearfix">
+              <p>{label}</p>
+              <div>
+                <SettingValue
+                  type={type}
+                  key={key}
+                  value={value}
+                  onChange={(update) => handleUpdateSetting({ ...update, _id })}
+                />
+              </div>
+            </Styles.Setting>
+          ))
+        ) : (
+          <BlankState
+            icon={{ style: 'solid', symbol: 'cogs' }}
+            title={`No settings to manage ${isAdmin ? 'for this user' : 'yet'}.`}
+            subtitle={`${
+              isAdmin ? 'GDPR-specific settings intentionally excluded. ' : ''
+            } When there are settings to manage, they'll appear here.`}
+          />
+        )}
+      </ListGroup>
+    </>
+  );
+};
 
 UserSettings.defaultProps = {
   userId: null,
   isAdmin: false,
-  settings: [],
+  settingsFromProps: [],
   updateUser: null,
 };
 
 UserSettings.propTypes = {
   userId: PropTypes.string,
   isAdmin: PropTypes.bool,
-  settings: PropTypes.array,
+  settingsFromProps: PropTypes.array,
   updateUser: PropTypes.func,
 };
 

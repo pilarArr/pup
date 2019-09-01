@@ -90,7 +90,8 @@ const Signup = ({ history, sendVerificationEmail }) => (
           </Col>
         </Row>
         <Validation
-          {...validationRules}
+          rules={validationRules.rules}
+          messages={validationRules.messages}
           submitHandler={(form) => handleSubmit(form, history, sendVerificationEmail)}
         >
           <Form onSubmit={(event) => event.preventDefault()}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { graphql } from 'react-apollo';
 import { Alert } from 'react-bootstrap';
@@ -6,15 +6,14 @@ import { Accounts } from 'meteor/accounts-base';
 import { Bert } from 'meteor/themeteorchef:bert';
 import { sendWelcomeEmail as sendWelcomeEmailMutation } from '../../mutations/Users.gql';
 
-class VerifyEmail extends React.Component {
-  state = { error: null };
+const VerifyEmail = ({ match, history, sendWelcomeEmail }) => {
+  const [error, setError] = useState(null);
 
-  componentDidMount() {
-    const { match, history, sendWelcomeEmail } = this.props;
-    Accounts.verifyEmail(match.params.token, (error) => {
-      if (error) {
-        Bert.alert(error.reason, 'danger');
-        this.setState({ error: `${error.reason}. Please try again.` });
+  useEffect(() => {
+    Accounts.verifyEmail(match.params.token, (verifyEmailError) => {
+      if (verifyEmailError) {
+        Bert.alert(verifyEmailError.reason, 'danger');
+        setError(`${verifyEmailError.reason}. Please try again.`);
       } else {
         setTimeout(() => {
           Bert.alert('All set, thanks!', 'success');
@@ -23,17 +22,14 @@ class VerifyEmail extends React.Component {
         }, 1500);
       }
     });
-  }
+  }, [match.params.token, error, sendWelcomeEmail, history]);
 
-  render() {
-    const { error } = this.state;
-    return (
-      <div className="VerifyEmail">
-        <Alert variant={!error ? 'info' : 'danger'}>{!error ? 'Verifying...' : error}</Alert>
-      </div>
-    );
-  }
-}
+  return (
+    <div className="VerifyEmail">
+      <Alert variant={!error ? 'info' : 'danger'}>{!error ? 'Verifying...' : error}</Alert>
+    </div>
+  );
+};
 
 VerifyEmail.propTypes = {
   match: PropTypes.object.isRequired,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { compose, graphql, withApollo } from 'react-apollo';
 import FileSaver from 'file-saver';
@@ -20,30 +20,105 @@ import {
 } from '../../mutations/Users.gql';
 import Styles from './styles';
 
-class Profile extends React.Component {
-  state = { activeTab: 'profile' };
+const OAuthUserProfile = ({ user }) => (
+  <div key={user.oAuthProvider} className={`LoggedInWith ${user.oAuthProvider}`}>
+    <img src={`/${user.oAuthProvider}.svg`} alt={user.oAuthProvider} />
+    <p>
+      {`You're logged in with ${capitalize(user.oAuthProvider)} using the email address ${
+        user.emailAddress
+      }.`}
+    </p>
+    <Button
+      className={`btn btn-${user.oAuthProvider}`}
+      href={
+        {
+          facebook: 'https://www.facebook.com/settings',
+          google: 'https://myaccount.google.com/privacy#personalinfo',
+          github: 'https://github.com/settings/profile',
+        }[user.oAuthProvider]
+      }
+      target="_blank"
+    >
+      {`Edit Profile on ${capitalize(user.oAuthProvider)}`}
+    </Button>
+  </div>
+);
+OAuthUserProfile.propTypes = {
+  user: PropTypes.object.isRequired,
+};
 
-  getUserType = (user) => (user.oAuthProvider ? 'oauth' : 'password');
+const PasswordUserProfile = ({ user }) => (
+  <>
+    <Form.Row>
+      <Form.Group as={Col} xs={6}>
+        <Form.Label>First Name</Form.Label>
+        <Form.Control type="text" name="firstName" defaultValue={user.name.first} />
+      </Form.Group>
+      <Form.Group as={Col} xs={6}>
+        <Form.Label>Last Name</Form.Label>
+        <Form.Control type="text" name="lastName" defaultValue={user.name.last} />
+      </Form.Group>
+    </Form.Row>
+    <Form.Group>
+      <Form.Label>Email Address</Form.Label>
+      <Form.Control type="email" name="emailAddress" defaultValue={user.emailAddress} />
+    </Form.Group>
+    <Form.Group>
+      <Form.Label>Current Password</Form.Label>
+      <Form.Control type="password" name="currentPassword" />
+    </Form.Group>
+    <Form.Group>
+      <Form.Label>New Password</Form.Label>
+      <Form.Control type="password" name="newPassword" />
+      <InputHint>Use at least six characters.</InputHint>
+    </Form.Group>
+    <Button type="submit" variant="success">
+      Save Profile
+    </Button>
+  </>
+);
+PasswordUserProfile.propTypes = {
+  user: PropTypes.object.isRequired,
+};
 
-  handleExportData = async (event) => {
-    const { client } = this.props;
+const getUserType = (user) => (user.oAuthProvider ? 'oauth' : 'password');
+
+const ProfileForm = ({ user }) => {
+  if (user) {
+    switch (getUserType(user)) {
+      case 'oauth':
+        return <OAuthUserProfile user={user} />;
+      case 'password':
+        return <PasswordUserProfile user={user} />;
+      default:
+        throw new Error();
+    }
+  }
+  return '';
+};
+ProfileForm.propTypes = {
+  user: PropTypes.object.isRequired,
+};
+
+const Profile = ({ client, data, updateUser, removeUser }) => {
+  const [activeTab, setActiveTab] = useState('profile');
+
+  const handleExportData = async (event) => {
     event.preventDefault();
-    const { data } = await client.query({
+    const { dataToExport } = await client.query({
       query: exportUserDataQuery,
     });
 
-    FileSaver.saveAs(base64ToBlob(data.exportUserData.zip), `${Meteor.userId()}.zip`);
+    FileSaver.saveAs(base64ToBlob(dataToExport.exportUserData.zip), `${Meteor.userId()}.zip`);
   };
 
-  handleDeleteAccount = () => {
-    const { removeUser } = this.props;
+  const handleDeleteAccount = () => {
     if (confirm('Are you sure? This will permanently delete your account and all of its data.')) {
       removeUser();
     }
   };
 
-  handleSubmit = (form) => {
-    const { updateUser } = this.props;
+  const handleSubmit = (form) => {
     updateUser({
       variables: {
         user: {
@@ -71,166 +146,99 @@ class Profile extends React.Component {
     }
   };
 
-  renderOAuthUser = (user) => (
-    <div key={user.oAuthProvider} className={`LoggedInWith ${user.oAuthProvider}`}>
-      <img src={`/${user.oAuthProvider}.svg`} alt={user.oAuthProvider} />
-      <p>
-        {`You're logged in with ${capitalize(user.oAuthProvider)} using the email address ${
-          user.emailAddress
-        }.`}
-      </p>
-      <Button
-        className={`btn btn-${user.oAuthProvider}`}
-        href={
-          {
-            facebook: 'https://www.facebook.com/settings',
-            google: 'https://myaccount.google.com/privacy#personalinfo',
-            github: 'https://github.com/settings/profile',
-          }[user.oAuthProvider]
-        }
-        target="_blank"
+  return data.user ? (
+    <Styles.Profile>
+      <PageHeader>
+        <h4>
+          {data.user.name ? `${data.user.name.first} ${data.user.name.last}` : data.user.username}
+        </h4>
+      </PageHeader>
+      <Tabs
+        transition={false}
+        activeKey={activeTab}
+        onSelect={(newTab) => setActiveTab(newTab)}
+        id="user-tabs"
       >
-        {`Edit Profile on ${capitalize(user.oAuthProvider)}`}
-      </Button>
-    </div>
-  );
-
-  renderPasswordUser = (user) => (
-    <>
-      <Form.Row>
-        <Form.Group as={Col} xs={6}>
-          <Form.Label>First Name</Form.Label>
-          <Form.Control type="text" name="firstName" defaultValue={user.name.first} />
-        </Form.Group>
-        <Form.Group as={Col} xs={6}>
-          <Form.Label>Last Name</Form.Label>
-          <Form.Control type="text" name="lastName" defaultValue={user.name.last} />
-        </Form.Group>
-      </Form.Row>
-      <Form.Group>
-        <Form.Label>Email Address</Form.Label>
-        <Form.Control type="email" name="emailAddress" defaultValue={user.emailAddress} />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>Current Password</Form.Label>
-        <Form.Control type="password" name="currentPassword" />
-      </Form.Group>
-      <Form.Group>
-        <Form.Label>New Password</Form.Label>
-        <Form.Control type="password" name="newPassword" />
-        <InputHint>Use at least six characters.</InputHint>
-      </Form.Group>
-      <Button type="submit" variant="success">
-        Save Profile
-      </Button>
-    </>
-  );
-
-  renderProfileForm = (user) =>
-    user &&
-    {
-      password: this.renderPasswordUser,
-      oauth: this.renderOAuthUser,
-    }[this.getUserType(user)](user);
-
-  render() {
-    const { data, updateUser } = this.props;
-    const { activeTab } = this.state;
-
-    return data.user ? (
-      <Styles.Profile>
-        <PageHeader>
-          <h4>
-            {data.user.name ? `${data.user.name.first} ${data.user.name.last}` : data.user.username}
-          </h4>
-        </PageHeader>
-        <Tabs
-          transition={false}
-          activeKey={activeTab}
-          onSelect={(newTab) => this.setState({ activeTab: newTab })}
-          id="user-tabs"
-        >
-          <Tab eventKey="profile" title="Profile">
-            <Row>
-              <Col xs={12} md={6} lg={4}>
-                <Validation
-                  rules={{
-                    firstName: {
-                      required: true,
+        <Tab eventKey="profile" title="Profile">
+          <Row>
+            <Col xs={12} md={6} lg={4}>
+              <Validation
+                rules={{
+                  firstName: {
+                    required: true,
+                  },
+                  lastName: {
+                    required: true,
+                  },
+                  emailAddress: {
+                    required: true,
+                    email: true,
+                  },
+                  currentPassword: {
+                    required: (form, blah) => {
+                      console.warn(form, blah);
+                      // Only required if newPassword field has a value.
+                      return document.querySelector('[name="newPassword"]').value.length > 0;
                     },
-                    lastName: {
-                      required: true,
+                  },
+                  newPassword: {
+                    required() {
+                      // Only required if currentPassword field has a value.
+                      return document.querySelector('[name="currentPassword"]').value.length > 0;
                     },
-                    emailAddress: {
-                      required: true,
-                      email: true,
-                    },
-                    currentPassword: {
-                      required: (form, blah) => {
-                        console.log(form, blah);
-                        // Only required if newPassword field has a value.
-                        return document.querySelector('[name="newPassword"]').value.length > 0;
-                      },
-                    },
-                    newPassword: {
-                      required() {
-                        // Only required if currentPassword field has a value.
-                        return document.querySelector('[name="currentPassword"]').value.length > 0;
-                      },
-                      minlength: 6,
-                    },
-                  }}
-                  messages={{
-                    firstName: {
-                      required: "What's your first name?",
-                    },
-                    lastName: {
-                      required: "What's your last name?",
-                    },
-                    emailAddress: {
-                      required: 'Need an email address here.',
-                      email: 'Is this email address correct?',
-                    },
-                    currentPassword: {
-                      required: 'Need your current password if changing.',
-                    },
-                    newPassword: {
-                      required: 'Need your new password if changing.',
-                    },
-                  }}
-                  submitHandler={(form) => this.handleSubmit(form)}
-                >
-                  <Form onSubmit={(event) => event.preventDefault()}>
-                    {this.renderProfileForm(data.user)}
-                  </Form>
-                </Validation>
-                <AccountPageFooter>
-                  <p>
-                    <Button variant="link" className="btn-export" onClick={this.handleExportData}>
-                      Export my data
-                    </Button>
-                    {' - '}
-                    Download all of your documents as .txt files in a .zip
-                  </p>
-                </AccountPageFooter>
-                <AccountPageFooter>
-                  <Button variant="danger" onClick={this.handleDeleteAccount}>
-                    Delete My Account
+                    minlength: 6,
+                  },
+                }}
+                messages={{
+                  firstName: {
+                    required: "What's your first name?",
+                  },
+                  lastName: {
+                    required: "What's your last name?",
+                  },
+                  emailAddress: {
+                    required: 'Need an email address here.',
+                    email: 'Is this email address correct?',
+                  },
+                  currentPassword: {
+                    required: 'Need your current password if changing.',
+                  },
+                  newPassword: {
+                    required: 'Need your new password if changing.',
+                  },
+                }}
+                submitHandler={(form) => handleSubmit(form)}
+              >
+                <Form onSubmit={(event) => event.preventDefault()}>
+                  <ProfileForm user={data.user} />
+                </Form>
+              </Validation>
+              <AccountPageFooter>
+                <p>
+                  <Button variant="link" className="btn-export" onClick={handleExportData}>
+                    Export my data
                   </Button>
-                </AccountPageFooter>
-              </Col>
-            </Row>
-          </Tab>
-          <Tab eventKey="settings" title="Settings">
-            <UserSettings settings={data.user.settings} updateUser={updateUser} />
-          </Tab>
-        </Tabs>
-      </Styles.Profile>
-    ) : (
-      ''
-    );
-  }
-}
+                  {' - '}
+                  Download all of your documents as .txt files in a .zip
+                </p>
+              </AccountPageFooter>
+              <AccountPageFooter>
+                <Button variant="danger" onClick={handleDeleteAccount}>
+                  Delete My Account
+                </Button>
+              </AccountPageFooter>
+            </Col>
+          </Row>
+        </Tab>
+        <Tab eventKey="settings" title="Settings">
+          <UserSettings settingsFromProps={data.user.settings} updateUser={updateUser} />
+        </Tab>
+      </Tabs>
+    </Styles.Profile>
+  ) : (
+    ''
+  );
+};
 
 Profile.propTypes = {
   data: PropTypes.object.isRequired,
