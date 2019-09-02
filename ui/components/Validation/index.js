@@ -3,12 +3,18 @@ import { Meteor } from 'meteor/meteor';
 import { isNil } from 'lodash';
 import PropTypes from 'prop-types';
 
+import useCallbackRef from '../../hooks/useCallbackRef';
+
 let validate;
 
 const Validation = ({ children, rules, messages }) => {
   const [clientModulesReady, setClientModulesReady] = useState(false);
-  const formRef = useRef(null);
+  const [form, formRef] = useCallbackRef();
   const validateInstance = useRef(null);
+
+  const isChildAllowed =
+    React.Children.only(children) &&
+    (children.type === 'form' || children.type.displayName === 'Form');
 
   useEffect(() => {
     const loadClientModules = async () => {
@@ -18,32 +24,28 @@ const Validation = ({ children, rules, messages }) => {
         setClientModulesReady(true);
       }
     };
+    if (!clientModulesReady) {
+      loadClientModules();
+    }
+  }, [clientModulesReady]);
 
+  useEffect(() => {
     const loadValidation = () => {
       if (!isNil(validateInstance.current)) {
         validateInstance.current.destroy();
       }
-      validateInstance.current = validate(formRef.current, { rules, messages });
+      validateInstance.current = validate(form, { rules, messages });
     };
-
-    if (!clientModulesReady) {
-      loadClientModules();
-    } else {
+    if (clientModulesReady) {
       loadValidation();
     }
     return () => {
-      validateInstance.current.destroy();
+      if (!isNil(validateInstance.current)) {
+        validateInstance.current.destroy();
+      }
     };
-  }, [clientModulesReady, messages, rules]);
+  }, [clientModulesReady, form, messages, rules]);
 
-  const isChildAllowed =
-    React.Children.only(children) &&
-    (children.type === 'form' || children.type.displayName === 'form');
-
-  if (!clientModulesReady) {
-    console.warn('[Pup] The client modules are not ready.');
-    return null;
-  }
   if (!isChildAllowed) {
     console.warn(
       '[Pup] A single <form></form> element is the only allowed child of the Validation component.',
