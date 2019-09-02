@@ -52,7 +52,7 @@ import Styles from './styles';
 
 library.add(fas, far, fab);
 
-const App = ({ loading, authenticated, userId, emailVerified, emailAddress, loggingIn }) => {
+const App = ({ loading, authenticated, userId, emailVerified, emailAddress, loggingIn, name }) => {
   const [ready, setPageReady] = useState(false);
   const [afterLoginPath, setAfterLoginPath] = useState(null);
 
@@ -70,7 +70,7 @@ const App = ({ loading, authenticated, userId, emailVerified, emailAddress, logg
         />
       )}
       {authenticated && <GDPRConsentModal />}
-      <Navigation />
+      <Navigation authenticated={authenticated} name={name} userId={userId} />
       <Container>
         <Switch>
           <Route exact name="index" path="/" component={Index} />
@@ -157,6 +157,7 @@ App.defaultProps = {
   loading: true,
   loggingIn: false,
   userId: '',
+  name: '',
   emailAddress: '',
   emailVerified: false,
   authenticated: false,
@@ -166,6 +167,7 @@ App.propTypes = {
   loading: PropTypes.bool,
   loggingIn: PropTypes.bool,
   userId: PropTypes.string,
+  name: PropTypes.string,
   emailAddress: PropTypes.string,
   emailVerified: PropTypes.bool,
   authenticated: PropTypes.bool,

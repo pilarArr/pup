@@ -26,10 +26,11 @@ const Navigation = ({ authenticated, name, userId }) => (
 
 Navigation.defaultProps = {
   name: '',
+  userId: '',
 };
 
 Navigation.propTypes = {
-  userId: PropTypes.string.isRequired,
+  userId: PropTypes.string,
   authenticated: PropTypes.bool.isRequired,
   name: PropTypes.string,
 };
