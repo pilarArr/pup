@@ -7,7 +7,7 @@ import useCallbackRef from '../../hooks/useCallbackRef';
 
 let validate;
 
-const Validation = ({ children, rules, messages }) => {
+const Validation = ({ children, rules, messages, submitHandler }) => {
   const [clientModulesReady, setClientModulesReady] = useState(false);
   const [form, formRef] = useCallbackRef();
   const validateInstance = useRef(null);
@@ -34,17 +34,12 @@ const Validation = ({ children, rules, messages }) => {
       if (!isNil(validateInstance.current)) {
         validateInstance.current.destroy();
       }
-      validateInstance.current = validate(form, { rules, messages });
+      validateInstance.current = validate(form, { rules, messages, submitHandler });
     };
     if (clientModulesReady) {
       loadValidation();
     }
-    return () => {
-      if (!isNil(validateInstance.current)) {
-        validateInstance.current.destroy();
-      }
-    };
-  }, [clientModulesReady, form, messages, rules]);
+  }, [clientModulesReady, form, messages, rules, submitHandler]);
 
   if (!isChildAllowed) {
     console.warn(
@@ -66,6 +61,7 @@ Validation.propTypes = {
   children: PropTypes.node.isRequired,
   rules: PropTypes.object.isRequired,
   messages: PropTypes.object.isRequired,
+  submitHandler: PropTypes.func.isRequired,
 };
 
 export default Validation;
