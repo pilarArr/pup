@@ -5,7 +5,7 @@ import AdminUsersList from '../../components/AdminUsersList';
 
 const AdminUsers = () => {
   const [currentPage, setPage] = useState(1);
-  const [search, setSearch] = useState(null);
+  const [search, setSearch] = useState('');
 
   return (
     <>
