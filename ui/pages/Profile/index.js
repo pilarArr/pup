@@ -176,7 +176,7 @@ const Profile = ({ client, data, updateUser, removeUser }) => {
                   },
                   currentPassword: {
                     required: (form, blah) => {
-                      console.warn(form, blah);
+                      console.info(form, blah);
                       // Only required if newPassword field has a value.
                       return document.querySelector('[name="newPassword"]').value.length > 0;
                     },

@@ -7,14 +7,16 @@ import unfreezeApolloCacheValue from '../../../modules/unfreezeApolloCacheValue'
 import delay from '../../../modules/delay';
 import Styles from './styles';
 
-const SettingValue = ({ type, key, value, onChange }) => {
+const SettingValue = ({ type, keyName, value, onChange }) => {
   switch (type) {
     case 'boolean':
       return (
         <ToggleSwitch
-          id={key}
+          id={keyName}
           toggled={value === 'true'}
-          onToggle={(id, toggled) => onChange({ key, value: `${toggled}` })}
+          onToggle={() => {
+            onChange({ key: keyName, value: `${!(value === 'true')}` });
+          }}
         />
       );
     case 'number':
@@ -22,14 +24,14 @@ const SettingValue = ({ type, key, value, onChange }) => {
         <Form.Control
           type="number"
           value={value}
-          onChange={(event) => onChange({ key, value: parseInt(event.target.value, 10) })}
+          onChange={(event) => onChange({ key: keyName, value: parseInt(event.target.value, 10) })}
         />
       );
     case 'string':
       return (
         <Form.Control
           value={value}
-          onChange={(event) => onChange({ key, value: event.target.value })}
+          onChange={(event) => onChange({ key: keyName, value: event.target.value })}
         />
       );
     default:
@@ -39,8 +41,8 @@ const SettingValue = ({ type, key, value, onChange }) => {
 
 SettingValue.propTypes = {
   type: PropTypes.string.isRequired,
-  key: PropTypes.bool.isRequired,
-  value: PropTypes.array.isRequired,
+  keyName: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
 };
 
@@ -78,7 +80,7 @@ const UserSettings = ({ settingsFromProps, userId, updateUser, isAdmin }) => {
               <div>
                 <SettingValue
                   type={type}
-                  key={key}
+                  keyName={key}
                   value={value}
                   onChange={(update) => handleUpdateSetting({ ...update, _id })}
                 />

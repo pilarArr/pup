@@ -38,6 +38,10 @@ const AdminUserSettingsModal = ({ show, onHide, setting, updateUserSetting, addU
     }
   }, [setting]);
 
+  const toggleSwith = () => {
+    toggleGDPR(!isGDPR);
+  };
+
   const handleSubmit = (form) => {
     const mutation = setting ? updateUserSetting : addUserSetting;
     const settingToAddOrUpdate = {
@@ -114,7 +118,7 @@ const AdminUserSettingsModal = ({ show, onHide, setting, updateUserSetting, addU
               </Form.Group>
               <Form.Group as={Col} xs={12} md={6}>
                 <Form.Label>Is this a GDPR setting?</Form.Label>
-                <ToggleSwitch toggled={isGDPR} onToggle={toggleGDPR} />
+                <ToggleSwitch toggled={isGDPR} onToggle={toggleSwith} />
               </Form.Group>
             </Form.Row>
             <Form.Group>
